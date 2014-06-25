@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<typesystem package="bigint">
+	<object-type name='BigInt' />
+	<primitive-type name="std::string"/>
+	<load-typesystem name="typesystem_core.xml" generate="no" />
+	<container-type name="std::vector" type="vector">
+        <include file-name="vector" location="global"/>
+        <conversion-rule>
+            <native-to-target>
+            %INTYPE::size_type vectorSize = %in.size();
+            PyObject* %out = PyList_New((int) vectorSize);
+            for (%INTYPE::size_type idx = 0; idx &lt; vectorSize; ++idx) {
+                %INTYPE_0 cppItem(%in[idx]);
+                PyList_SET_ITEM(%out, idx, %CONVERTTOPYTHON[%INTYPE_0](cppItem));
+            }
+            return %out;
+            </native-to-target>
+            <target-to-native>
+                <add-conversion type="PySequence">
+                Shiboken::AutoDecRef seq(PySequence_Fast(%in, 0));
+                int vectorSize = PySequence_Fast_GET_SIZE(seq.object());
+                %out.reserve(vectorSize);
+                for (int idx = 0; idx &lt; vectorSize; ++idx ) {
+                    PyObject* pyItem = PySequence_Fast_GET_ITEM(seq.object(), idx);
+                    %OUTTYPE_0 cppItem = %CONVERTTOCPP[%OUTTYPE_0](pyItem);
+                    %out.push_back(cppItem);
+                }
+                </add-conversion>
+            </target-to-native>
+        </conversion-rule>
+    </container-type>
+</typesystem>
